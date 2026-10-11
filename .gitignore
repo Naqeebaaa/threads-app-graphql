@@ -152,3 +152,4 @@ vite.config.ts.timestamp-*
 node_modules/
 .env
 build/
+/src/generated/prisma
