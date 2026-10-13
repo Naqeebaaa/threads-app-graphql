@@ -25,6 +25,9 @@ class UserService {
 
      }
 
+    public static getUserById(id: string) {
+      return prisma.user.findUnique({ where: { id }});
+    }
     public static createUser(payload: CreateUserPayload) {
       const {firstName, lastName, email, password} = payload;
 
@@ -43,6 +46,7 @@ class UserService {
     private static getUserByEmail(email: string) {
       return prisma.user.findUnique({ where : { email} })
     }
+    //incode service for token
     public static async getUserToken(payload: GetUserTokenPayload) {
       const { email, password } = payload;
       const user = await UserService.getUserByEmail(email);
@@ -64,6 +68,10 @@ class UserService {
       );
       return token;
     } 
+    //decode service for token
+    public static decodeJWTToken(token: string) {
+      return JWT.verify(token, JWT_SECRET);
+    }
     }
 
 
