@@ -1,12 +1,19 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import JWT from 'jsonwebtoken'
 import  { prisma }  from "../lib/db";
+import { Prisma } from "../generated/prisma/client";
 
-const JWT_SECRET ='$uperM@n@123'
+const JWT_SECRET: string = process.env.JWT_SECRET ?? "";
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is missing from environment variables");
+}
+
 
 export interface CreateUserPayload{
       firstName: string;
       lastName: string;
+      username: string;
       email: string;
       password: string;
 }
@@ -28,24 +35,44 @@ class UserService {
     public static getUserById(id: string) {
       return prisma.user.findUnique({ where: { id }});
     }
-    public static createUser(payload: CreateUserPayload) {
-      const {firstName, lastName, email, password} = payload;
+    public static async  createUser(payload: CreateUserPayload) {
+      const {firstName, lastName, username, email, password} = payload;
 
       const salt =randomBytes(32).toString("hex");
       const hashedPassword = UserService.generateHash(salt, password);
-  return prisma.user.create({
+      try{
+  return await prisma.user.create({
   data: {
     firstName,
     lastName,
+    username,
     email,
     salt,
     password: hashedPassword,
   }, 
   });
+    } catch (error){
+   if (
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  error.code === "P2002"
+)  {
+      throw new Error("Email or username is already taken.");
+      }
+      throw error;
     }
-    private static getUserByEmail(email: string) {
-      return prisma.user.findUnique({ where : { email} })
-    }
+  }
+   private static async getUserByEmail(email: string) {
+  try {
+    return await prisma.user.findUnique({
+      where: { email },
+    });
+  } catch (error) {
+    console.error("getUserByEmail Prisma error:", error);
+    throw error;
+  }
+}
     //incode service for token
     public static async getUserToken(payload: GetUserTokenPayload) {
       const { email, password } = payload;
@@ -64,7 +91,8 @@ class UserService {
       //else generate token and return
       const token = JWT.sign(
         { id: user?.id, email: user.email }, 
-        JWT_SECRET
+        JWT_SECRET,
+        { expiresIn: "1h" }
       );
       return token;
     } 
@@ -72,6 +100,7 @@ class UserService {
     public static decodeJWTToken(token: string) {
       return JWT.verify(token, JWT_SECRET);
     }
+
     }
 
 

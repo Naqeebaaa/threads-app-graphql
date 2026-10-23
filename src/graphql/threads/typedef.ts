@@ -3,5 +3,8 @@ export const typedefs = `#graphql
     id: ID!
     content: String!
     authorId: String!
+    author: User!
+    createdAt: String!
+    updatedAt: String!
   }
 `;

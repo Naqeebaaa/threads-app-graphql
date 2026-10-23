@@ -2,7 +2,7 @@ import express from "express";
 import  createApolloGraphqlServer  from "./graphql";
 import { expressMiddleware } from "@as-integrations/express5";
 import UserService, { type CreateUserPayload,} from "./user/user";
-
+import "dotenv/config";
 
 async function init() {
 const app = express();
@@ -26,6 +26,9 @@ app.use('/graphql', expressMiddleware(await createApolloGraphqlServer(), {
   const token = req.headers["token"];
     console.log("Token received:", Boolean(token));
 
+    if (typeof token !== "string" || !token) {
+  return {};
+}
    try {
     const user = UserService.decodeJWTToken(token as string);
       console.log("JWT verified successfully");

@@ -19,15 +19,18 @@ const gqlServer = new ApolloServer({
 }
       `, //Schema
   resolvers: {
-    Query: { 
-      ...User.resolvers.queries,
-      ...Thread.resolvers.queries,
-    },  
-    Mutation: {
-      ...User.resolvers.mutations,
-      ...Thread.resolvers.mutations,
-    },
+  Query: {
+    ...User.resolvers.queries,
+    ...Thread.resolvers.queries,
   },
+  Mutation: {
+    ...User.resolvers.mutations,
+    ...Thread.resolvers.mutations,
+  },
+  Thread: {
+    ...Thread.resolvers.Thread,
+  },
+},
 });
 //start the gql server
 await gqlServer.start();
